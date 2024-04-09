@@ -17,6 +17,7 @@ How to use this tool:
 2. Copy the path to the ```mod_parser.py``` file  
 3. In the ARK DevKit, find the Output Log window  
 4. Type the following command into that log:  
+  
 For standard JSON output:  
 ```
 py "absolute/path/to/mod_parser.py" standard --mod-root-folder "/YourModFolderName" --output-folder "path/to/output/folder" --mod-name "Your Mod Name"
