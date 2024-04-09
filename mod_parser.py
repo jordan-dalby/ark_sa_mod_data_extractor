@@ -13,7 +13,7 @@ MOD_DATA = {
     "MOD_NAME": "Resource Gatherers",
     "CONTENT_PACK_ID": "ce54b3ba-f0a3-4c69-b52a-7e6c8c71bc55",
 }
-
+test  = ""
 CONTENT_PACK_IDS = {
     "/Game/PrimalEarth/" : "b32a3d73-9406-56f2-bd8f-936ee0275249",
     "/Game/ScorchedEarth/" : "91bb3eb3-1ff5-4fc5-86f8-8cb158a2d977",
