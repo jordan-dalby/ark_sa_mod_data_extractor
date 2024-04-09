@@ -24,6 +24,8 @@ CONTENT_PACK_IDS = {
 OUTPUT_DIR = "E:\\Google Drive\\Python Scripts\\ArkSAModDataGenerator\\"
 BEACON_NAMESPACE = uuid.UUID('82aa4465-85f9-4b9e-8d36-f66164cef0a6')
 
+test  =""
+
 def uuid_from_path(path):
     for prefix, id in CONTENT_PACK_IDS.items():
         if path.startswith(prefix):
