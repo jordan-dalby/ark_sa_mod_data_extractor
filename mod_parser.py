@@ -64,6 +64,51 @@ class Utils:
                     tar.add(file_path, arcname=os.path.relpath(file_path, folder_path))
 
 
+class EngramEntry:
+    """A parser class for engram entries"""
+
+    def __init__(self, engram):
+        self.engram_data = {}
+        self.parse_engram(engram)
+
+    def parse_engram(self, engram):
+        """Parse the engram"""
+        self.engram_data = {
+            "engram_class_name": engram.get_class().get_name(),
+            "required_level": engram.required_character_level,
+            "required_engram_points": engram.required_engram_points,
+        }
+
+    def __getitem__(self, key):
+        """Allow indexing to access items in engram_data"""
+        return self.engram_data[key]
+
+
+class PrimalItem:
+    """A parser class for primal items"""
+
+    def __init__(self, primal_item):
+        self.primal_item_data = {}
+        # pylint: disable=no-member
+        primal_item_obj_default = unreal.get_default_object(primal_item)
+        self.parse_primal_item(primal_item, primal_item_obj_default)
+
+    def parse_primal_item(self, primal_item, primal_item_obj_default):
+        """Parse the primal item data into a dictionary"""
+        primal_item_path = primal_item.get_path_name()[:-2]
+        self.primal_item_data = {
+            "primal_item_path": primal_item_path,
+            "primal_item_name": primal_item_obj_default.descriptive_name_base,
+            "blueprintable": primal_item_obj_default.can_be_blueprint,
+            "stack_size": primal_item_obj_default.max_item_quantity,
+            "crafting_requirements": primal_item_obj_default.base_crafting_resource_requirements,
+        }
+
+    def __getitem__(self, key):
+        """Allow indexing to access items in primal_item_data"""
+        return self.primal_item_data[key]
+
+
 class BeaconEngramBuilder:
     """A builder class that creates files in a format that can be imported into Beacon"""
 
@@ -72,29 +117,31 @@ class BeaconEngramBuilder:
         self.engrams = []
         self.output_file_path = ""
 
-    def add_engram(self, engram_data):
+    def add_engram(self, engram, primal_item):
         """Adds an engram to the engrams array"""
-        blueprintable = "blueprintable" if engram_data["blueprintable"] is True else None
+        tags = []
+        if primal_item["blueprintable"]:
+            tags.append("blueprintable")
         engram = {
             "group": "engrams",
-            "engramId": engram_data["uuid"],
-            "label": engram_data["primal_item_name"],
+            "engramId": self.mod_parser.uuid_from_path(primal_item["primal_item_path"]),
+            "label": primal_item["primal_item_name"],
             "alternateLabel": None,
-            "tags": [blueprintable],
+            "tags": tags,
             "availability": 3,
-            "path": engram_data["engram_path"],
+            "path": primal_item["primal_item_path"],
             "minVersion": 20000000,
             "lastUpdate": time.time(),
             "contentPackId": self.mod_parser.mod_data["content_pack_id"],
             "contentPackName": self.mod_parser.mod_data["mod_name"],
-            "entryString": engram_data["engram_class_name"],
-            "requiredLevel": engram_data["required_level"],
-            "requiredPoints": engram_data["required_engram_points"],
-            "stackSize": engram_data["stack_size"],
+            "entryString": engram["engram_class_name"],
+            "requiredLevel": engram["required_level"],
+            "requiredPoints": engram["required_engram_points"],
+            "stackSize": primal_item["stack_size"],
         }
 
         recipe = []
-        crafting_requirements = engram_data["primal_item"].base_crafting_resource_requirements
+        crafting_requirements = primal_item["crafting_requirements"]
         for crafting_requirement in crafting_requirements:
             requirements = {
                 "engramId": self.mod_parser.uuid_from_path(crafting_requirement.resource_item_type.get_path_name()[:-2]),
@@ -160,19 +207,19 @@ class StandardEngramBuilder:
         self.engrams = []
         self.output_file_path = ""
 
-    def add_engram(self, engram_data):
+    def add_engram(self, engram, primal_item):
         """Adds an engram to the engram array"""
         engram = {
-            "name": engram_data["primal_item_name"],
-            "path": engram_data["engram_path"],
-            "entryString": engram_data["engram_class_name"],
-            "requiredLevel": engram_data["required_level"],
-            "requiredPoints": engram_data["required_engram_points"],
-            "stackSize": engram_data["stack_size"],
+            "name": primal_item["primal_item_name"],
+            "path": primal_item["primal_item_path"],
+            "stackSize": primal_item["stack_size"],
+            "entryString": engram["engram_class_name"],
+            "requiredLevel": engram["required_level"],
+            "requiredPoints": engram["required_engram_points"],
         }
 
         recipe = []
-        crafting_requirements = engram_data["primal_item"].base_crafting_resource_requirements
+        crafting_requirements = primal_item["crafting_requirements"]
         for crafting_requirement in crafting_requirements:
             requirements = {
                 "resource": crafting_requirement.resource_item_type.get_path_name()[:-2],
@@ -208,28 +255,10 @@ class EngramBuilder:
         self.mod_parser = mod_parser
         self.builder = builder
 
-    def add_engram(self, engram):
+    def add_engram(self, engram, primal_item):
         """Creates some valuable data that the builder classes use to
         create the json files"""
-        blue_print_entry = engram.blue_print_entry
-        # pylint: disable=no-member
-        blue_print_entry_obj = unreal.load_object(None, blue_print_entry.get_path_name())
-        # pylint: disable=no-member
-        blue_print_entry_obj_default = unreal.get_default_object(blue_print_entry_obj)
-
-        engram_path = blue_print_entry_obj.get_path_name()[:-2]
-        engram_data = {
-            "uuid": self.mod_parser.uuid_from_path(engram_path),
-            "engram_path": engram_path,
-            "primal_item": blue_print_entry_obj_default,
-            "primal_item_name": blue_print_entry_obj_default.descriptive_name_base,
-            "blueprintable": blue_print_entry_obj_default.can_be_blueprint,
-            "engram_class_name": engram.get_class().get_name(),
-            "required_level": engram.required_character_level,
-            "required_engram_points": engram.required_engram_points,
-            "stack_size": blue_print_entry_obj_default.max_item_quantity,
-        }
-        self.builder.add_engram(engram_data)
+        self.builder.add_engram(engram, primal_item)
 
     def dump(self):
         """Call the builder dump function"""
@@ -340,7 +369,14 @@ class ModParser:
             engram_obj = unreal.load_object(None, engram.get_path_name())
             # pylint: disable=no-member
             engram_obj_default = unreal.get_default_object(engram_obj)
-            builder.add_engram(engram_obj_default)
+            engram_entry = EngramEntry(engram_obj_default)
+
+            _primal_item = engram_obj_default.blue_print_entry
+            # pylint: disable=no-member
+            primal_item_obj = unreal.load_object(None, _primal_item.get_path_name())
+            primal_item = PrimalItem(primal_item_obj)
+
+            builder.add_engram(engram_entry, primal_item)
         builder.dump()
         print(f"Done! {builder.get_output_file()}")
 
