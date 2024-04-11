@@ -256,8 +256,7 @@ class EngramBuilder:
         self.builder = builder
 
     def add_engram(self, engram, primal_item):
-        """Creates some valuable data that the builder classes use to
-        create the json files"""
+        """Call the builders add_engram function"""
         self.builder.add_engram(engram, primal_item)
 
     def dump(self):
