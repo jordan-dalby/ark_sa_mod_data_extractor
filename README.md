@@ -35,7 +35,7 @@ When importing the .beacondata file into Beacon, you should make sure to delete 
   
 ## How do I get the content-pack-id?  
 
-At present, Beacon hides this unique identifier in the ```.beacondata``` file. The best way I have found to retreive it (until it is exposed) is by disecting an exported ```.beacondata``` file. To do this, open your mod in the Beacon desktop app, if you don't have an engram added, add a temporary one. Select the engram (or any engram), and press Export. Save this file somewhere you can find it and then change the extension from ```.beacondata``` to ```.tar.gz```. Then, open the ```.tar.gz``` archive with any archive tool, there are two files in there, Manifest.json, and a UUID json file, the name of that UUID file is your content-pack-id.  
+At present, Beacon hides this unique identifier in the ```.beacondata``` file. The best way I have found to retreive it (until it is exposed) is by disecting an exported ```.beacondata``` file. To do this, open your mod in the Beacon desktop app, if you don't have an engram added, add a temporary one. Select the engram (or any engram), and press Export. Save this file somewhere you can find it and open the ```.beacondata``` file with ideally 7zip, or change the extension to ```.tar.gz``` and open with WinRaR, there are two files in there, Manifest.json, and a UUID json file, the name of that UUID file is your content-pack-id.  
   
   
 ## Issues  
