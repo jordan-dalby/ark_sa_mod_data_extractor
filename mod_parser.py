@@ -11,6 +11,7 @@ import os
 import unreal
 
 BEACON_NAMESPACE = uuid.UUID("82aa4465-85f9-4b9e-8d36-f66164cef0a6")
+BASE_CONTENT_PACK_ID = "b32a3d73-9406-56f2-bd8f-936ee0275249"
 
 
 class MissingDataException(Exception):
@@ -274,9 +275,8 @@ class ModParser:
     def __init__(self):
         self.output_dir = ""
         self.content_pack_ids = {
-            "/Game/PrimalEarth/": "b32a3d73-9406-56f2-bd8f-936ee0275249",
-            "/Game/ScorchedEarth/": "91bb3eb3-1ff5-4fc5-86f8-8cb158a2d977",
-            "/Packs/Frontier/": "0d12c7e6-3ee4-4202-bd4a-1fa7c18b2bcc",
+            "/Game/": BASE_CONTENT_PACK_ID,
+            "/Packs/": BASE_CONTENT_PACK_ID,
         }
         self.mod_data = {}
 
