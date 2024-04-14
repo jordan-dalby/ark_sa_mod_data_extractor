@@ -28,6 +28,11 @@ For Beacon output:
 py "absolute/path/to/mod_parser.py" beacon --mod-root-folder "/YourModFolderName" --mod-id "YourModId" --mod-name "Your Mod Name" --content-pack-id "beacon-specific-uuid-for-your-mod" --output-folder "path/to/output/folder"
 ```
   
+For CSV output:  
+```
+py "absolute/path/to/mod_parser.py" csv --mod-root-folder "/YourModFolderName" --output-folder "path/to/output/folder" --mod-name "Your Mod Name"
+```
+  
 5. Check your output folder for the file (either .json or .beacondata), this path is also printed after a successful run of the tool.  
   
 When importing the .beacondata file into Beacon, you should make sure to delete all current entries, publish the changes, and then import the new ```.beacondata``` file. This is the most reliable way I have found of ensuring everything goes smoothly with the upload.  
