@@ -1,2 +1,8 @@
 [MAIN]
 max-line-length = 200
+
+[design]
+max-locals = 25
+
+[MESSAGES CONTROL]
+disable=fixme

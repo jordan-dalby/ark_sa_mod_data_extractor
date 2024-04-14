@@ -7,6 +7,7 @@ import shutil
 import uuid
 import time
 import json
+import csv
 import os
 import unreal
 
@@ -110,7 +111,7 @@ class PrimalItem:
         return self.primal_item_data[key]
 
 
-class BeaconEngramBuilder:
+class BeaconBuilder:
     """A builder class that creates files in a format that can be imported into Beacon"""
 
     def __init__(self, mod_parser):
@@ -200,7 +201,7 @@ class BeaconEngramBuilder:
         Utils.remove_tmp_dir(temp_dir)
 
 
-class StandardEngramBuilder:
+class StandardBuilder:
     """A standard builder that returns generic json extracted from the mod"""
 
     def __init__(self, mod_parser):
@@ -223,6 +224,7 @@ class StandardEngramBuilder:
         crafting_requirements = primal_item["crafting_requirements"]
         for crafting_requirement in crafting_requirements:
             requirements = {
+                "friendly_resource_name": PrimalItem(crafting_requirement.resource_item_type)["primal_item_name"],
                 "resource": crafting_requirement.resource_item_type.get_path_name()[:-2],
                 "quantity": int(crafting_requirement.base_resource_requirement),
                 "exact": crafting_requirement.crafting_require_exact_resource_type,
@@ -247,6 +249,44 @@ class StandardEngramBuilder:
             data,
         )
         self.output_file_path = os.path.join(self.mod_parser.output_dir, file_name)
+
+
+class CSVBuilder(StandardBuilder):
+    """A builder class that creates files in a format that can be imported into Excel/Sheets"""
+
+    def __init__(self, mod_parser):
+        super().__init__(mod_parser)
+        self.mod_parser = mod_parser
+        self.engrams = []
+        self.output_file_path = ""
+
+    def dump(self):
+        """Dump the csv file"""
+        file_name = f"{self.mod_parser.mod_data['mod_name']}.csv"
+        self.output_file_path = os.path.join(self.mod_parser.output_dir, file_name)
+
+        fields = ["Item Name", "Item Path", "Max Stack Size", "Engram Class Name", "Required Level", "Required Engram Points", "Crafting Recipe"]
+        with open(self.output_file_path, "w", encoding="utf-8", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(fields)
+
+            for engram in self.engrams:
+                name = engram["name"]
+                path = engram["path"]
+                stack_size = engram["stackSize"]
+                entry_string = engram["entryString"]
+                required_level = engram["requiredLevel"]
+                required_points = engram["requiredPoints"]
+                recipe = engram["recipe"]
+                recipe_as_list = []
+                for ingredient in recipe:
+                    resource = ingredient["friendly_resource_name"]
+                    quantity = ingredient["quantity"]
+                    exact = ingredient["exact"]
+                    recipe_as_list.append(f"{resource} x{quantity} (Exact: {exact})")
+
+                # TODO: Add entries for learning the engram, hiding the engram, giving the item, (maybe) modifying crafting recipe?
+                writer.writerow([name, path, stack_size, entry_string, required_level, required_points, "\n".join(recipe_as_list)])
 
 
 class EngramBuilder:
@@ -309,6 +349,12 @@ class ModParser:
         parser_standard.add_argument("--output-folder", type=str, help="Output folder")
         parser_standard.add_argument("--mod-name", type=str, help="Name of the mod")
 
+        # CSV parser
+        parser_standard = subparsers.add_parser("csv", help="Activate csv to generate a .csv file")
+        parser_standard.add_argument("--mod-root-folder", type=str, help="Root folder of the mod")
+        parser_standard.add_argument("--output-folder", type=str, help="Output folder")
+        parser_standard.add_argument("--mod-name", type=str, help="Name of the mod")
+
         # Parse the args and ensure we got all the ones we need
         args = parser.parse_args()
         missing_args = [arg_name for arg_name, arg_value in vars(args).items() if arg_value is None]
@@ -357,10 +403,12 @@ class ModParser:
         print("Starting ARK SA Mod Data Parser")
         mda_asset_path = self.find_mda()
         print(f"Found ModDataAsset_BP asset: {mda_asset_path}")
-        builder = EngramBuilder(
-            self,
-            (BeaconEngramBuilder(mod_parser=self) if self.parser == "beacon" else StandardEngramBuilder(mod_parser=self)),
-        )
+        parsers = {
+            "beacon": BeaconBuilder,
+            "standard": StandardBuilder,
+            "csv": CSVBuilder,
+        }
+        builder = EngramBuilder(self, parsers[self.parser](mod_parser=self))
         engram_entries = self.get_additional_engram_blueprint_classes(mda_asset_path)
         print(f"{len(engram_entries)} engram entries found.")
         for engram in engram_entries:
