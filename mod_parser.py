@@ -342,18 +342,21 @@ class ModParser:
         parser_beacon.add_argument("--mod-name", type=str, help="Name of the mod")
         parser_beacon.add_argument("--content-pack-id", type=str, help="ID of the content pack")
         parser_beacon.add_argument("--output-folder", type=Utils.is_valid_directory, help="Output folder")
+        parser_beacon.add_argument("--mda", type=str, default="ModDataAsset", help="ModDataAsset file name, defaults to ModDataAsset")
 
         # Standard parser
         parser_standard = subparsers.add_parser("standard", help="Activate standard")
         parser_standard.add_argument("--mod-root-folder", type=str, help="Root folder of the mod")
         parser_standard.add_argument("--output-folder", type=str, help="Output folder")
         parser_standard.add_argument("--mod-name", type=str, help="Name of the mod")
+        parser_standard.add_argument("--mda", type=str, default="ModDataAsset", help="ModDataAsset file name, defaults to ModDataAsset")
 
         # CSV parser
-        parser_standard = subparsers.add_parser("csv", help="Activate csv to generate a .csv file")
-        parser_standard.add_argument("--mod-root-folder", type=str, help="Root folder of the mod")
-        parser_standard.add_argument("--output-folder", type=str, help="Output folder")
-        parser_standard.add_argument("--mod-name", type=str, help="Name of the mod")
+        parser_csv = subparsers.add_parser("csv", help="Activate csv to generate a .csv file")
+        parser_csv.add_argument("--mod-root-folder", type=str, help="Root folder of the mod")
+        parser_csv.add_argument("--output-folder", type=str, help="Output folder")
+        parser_csv.add_argument("--mod-name", type=str, help="Name of the mod")
+        parser_csv.add_argument("--mda", type=str, default="ModDataAsset", help="ModDataAsset file name, defaults to ModDataAsset")
 
         # Parse the args and ensure we got all the ones we need
         args = parser.parse_args()
@@ -371,6 +374,7 @@ class ModParser:
         self.mod_data["mod_root_folder"] = args.mod_root_folder
         self.mod_data["mod_name"] = args.mod_name
         self.output_dir = args.output_folder
+        self.mda_name = args.mda
         self.parser = subcommand
 
         return args
@@ -382,7 +386,7 @@ class ModParser:
         for asset_path in assets:
             asset_name = unreal.Paths.get_base_filename(asset_path)
             # Since we ask for the Mod Path in the command, we can be sure this is the correct MDA
-            if "moddataasset" in asset_name.lower():
+            if self.mda_name.lower() in asset_name.lower():
                 return asset_path
         raise MissingDataException("Could not find a file with 'ModDataAsset' in it's name in the given mod_root_folder")
 
