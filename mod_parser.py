@@ -382,9 +382,9 @@ class ModParser:
         for asset_path in assets:
             asset_name = unreal.Paths.get_base_filename(asset_path)
             # Since we ask for the Mod Path in the command, we can be sure this is the correct MDA
-            if asset_name.startswith("ModDataAsset"):
+            if "moddataasset" in asset_name.lower():
                 return asset_path
-        raise MissingDataException("Could not find a ModDataAsset file in the given mod_root_folder")
+        raise MissingDataException("Could not find a file with 'ModDataAsset' in it's name in the given mod_root_folder")
 
     def get_additional_engram_blueprint_classes(self, asset_path):
         """Gets the additional engram blueprint classes field from the mod data asset"""
